@@ -1,17 +1,7 @@
-# Secrets
 .env
-
-# macOS junk
 .DS_Store
-
-# Runtime folders
-Schedule_New/
-Schedule_old/
-
-# Python cache
 __pycache__/
 *.pyc
-
-# Logs
-*.log
+Schedule_New/
+Schedule_old/
 
