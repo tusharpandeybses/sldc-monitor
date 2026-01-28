@@ -1,10 +1,10 @@
 from flask import Flask, render_template_string
-import psycopg2
+import json
 import os
 
-DB_URL = os.getenv("DATABASE_URL")
-
 app = Flask(__name__)
+
+DATA_FILE = "Schedule_New/Delhi_SLDC_DC.json"
 
 HTML = """
 <!DOCTYPE html>
@@ -41,15 +41,6 @@ th, td {
 th {
     background: #1e293b;
 }
-tr:hover {
-    background: #1e293b;
-}
-.footer {
-    text-align: center;
-    padding: 15px;
-    font-size: 12px;
-    color: #94a3b8;
-}
 </style>
 <script>
 function updateClock(){
@@ -64,55 +55,43 @@ setInterval(updateClock,1000);
 <body onload="updateClock()">
 <header>
 <h1>BSES Yamuna Power Limited</h1>
-<h3>Delhi SLDC Schedule Change Monitor</h3>
+<h3>Delhi SLDC Schedule Monitor</h3>
 <div class="clock" id="clock"></div>
 </header>
 
 <table>
 <tr>
-<th>Time</th>
 <th>Revision</th>
 <th>Plant</th>
 <th>Block</th>
-<th>Old MW</th>
-<th>New MW</th>
-<th>Δ MW</th>
+<th>MW</th>
 </tr>
 
 {% for r in rows %}
 <tr>
-<td>{{ r[0] }}</td>
-<td>{{ r[1] }}</td>
-<td>{{ r[2] }}</td>
-<td>{{ r[3] }}</td>
-<td>{{ r[4] }}</td>
-<td>{{ r[5] }}</td>
-<td>{{ r[6] }}</td>
+<td>{{ r.get("revision","-") }}</td>
+<td>{{ r.get("plant","-") }}</td>
+<td>{{ r.get("block","-") }}</td>
+<td>{{ r.get("mw","-") }}</td>
 </tr>
 {% endfor %}
-
 </table>
-
-<div class="footer">
-Auto-refresh every 30 seconds • Powered by Supabase + Render
-</div>
 </body>
 </html>
 """
 
 @app.route("/")
 def index():
-    conn = psycopg2.connect(DB_URL)
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT time_detected, revision, plant, block, old_mw, new_mw, delta_mw
-        FROM schedule_changes
-        ORDER BY time_detected DESC
-        LIMIT 200
-    """)
-    rows = cur.fetchall()
-    conn.close()
+    rows = []
+    if os.path.exists(DATA_FILE):
+        try:
+            with open(DATA_FILE) as f:
+                rows = json.load(f)
+        except Exception:
+            rows = []
     return render_template_string(HTML, rows=rows)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
+
