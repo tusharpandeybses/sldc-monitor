@@ -1,24 +1,18 @@
-
-import requests, json, os, shutil
+import requests
+import os
 from datetime import datetime
 
 URL = "https://www.delhisldc.org/Filesshared/api_response_28-01-2026.json"
+NEW_FILE = "Schedule_New/Delhi_SLDC_DC.json"
 
-NEW_DIR = "Schedule_New"
-OLD_DIR = "Schedule_old"
+os.makedirs("Schedule_New", exist_ok=True)
 
-os.makedirs(NEW_DIR, exist_ok=True)
-os.makedirs(OLD_DIR, exist_ok=True)
+print("⬇ Downloading SLDC schedule...")
+resp = requests.get(URL, timeout=30)
+resp.raise_for_status()
 
-if os.path.exists(f"{NEW_DIR}/Delhi_SLDC_DC.json"):
-    shutil.move(f"{NEW_DIR}/Delhi_SLDC_DC.json",
-                f"{OLD_DIR}/Delhi_SLDC_DC.json")
+with open(NEW_FILE, "w") as f:
+    f.write(resp.text)
 
-print("⬇ Downloading SLDC JSON")
-data = requests.get(URL).json()
+print("✅ New schedule saved at", datetime.now())
 
-with open(f"{NEW_DIR}/Delhi_SLDC_DC.json","w") as f:
-    json.dump(data,f)
-
-rev = data.get("RevisionNo","NA")
-print(f"✅ New schedule saved | Revision {rev}")

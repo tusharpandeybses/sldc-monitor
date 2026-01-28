@@ -4,7 +4,7 @@ import os
 
 app = Flask(__name__)
 
-DATA_FILE = "Schedule_New/Delhi_SLDC_DC.json"
+DATA_FILE = "Schedule_New/changes.json"
 
 HTML = """
 <!DOCTYPE html>
@@ -41,6 +41,15 @@ th, td {
 th {
     background: #1e293b;
 }
+tr:hover {
+    background: #1e293b;
+}
+.footer {
+    text-align: center;
+    padding: 15px;
+    font-size: 12px;
+    color: #94a3b8;
+}
 </style>
 <script>
 function updateClock(){
@@ -55,27 +64,37 @@ setInterval(updateClock,1000);
 <body onload="updateClock()">
 <header>
 <h1>BSES Yamuna Power Limited</h1>
-<h3>Delhi SLDC Schedule Monitor</h3>
+<h3>Delhi SLDC Schedule Change Monitor</h3>
 <div class="clock" id="clock"></div>
 </header>
 
 <table>
 <tr>
+<th>Time</th>
 <th>Revision</th>
 <th>Plant</th>
 <th>Block</th>
-<th>MW</th>
+<th>Old MW</th>
+<th>New MW</th>
+<th>Δ MW</th>
 </tr>
 
 {% for r in rows %}
 <tr>
-<td>{{ r.get("revision","-") }}</td>
-<td>{{ r.get("plant","-") }}</td>
-<td>{{ r.get("block","-") }}</td>
-<td>{{ r.get("mw","-") }}</td>
+<td>{{ r.time }}</td>
+<td>{{ r.revision }}</td>
+<td>{{ r.plant }}</td>
+<td>{{ r.block }}</td>
+<td>{{ r.old_mw }}</td>
+<td>{{ r.new_mw }}</td>
+<td>{{ r.delta_mw }}</td>
 </tr>
 {% endfor %}
 </table>
+
+<div class="footer">
+Auto-refresh every 30 seconds • Render Free Tier
+</div>
 </body>
 </html>
 """
@@ -84,12 +103,10 @@ setInterval(updateClock,1000);
 def index():
     rows = []
     if os.path.exists(DATA_FILE):
-        try:
-            with open(DATA_FILE) as f:
-                rows = json.load(f)
-        except Exception:
-            rows = []
-    return render_template_string(HTML, rows=rows)
+        with open(DATA_FILE) as f:
+            rows = json.load(f)
+
+    return render_template_string(HTML, rows=rows[:300])
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
