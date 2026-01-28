@@ -1,7 +1,4 @@
+__pycache__/
 .env
 .DS_Store
-__pycache__/
-*.pyc
-Schedule_New/
-Schedule_old/
-
+Schedule_old/*.json
